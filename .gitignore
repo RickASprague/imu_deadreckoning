@@ -1,0 +1,25 @@
+# --- IDE (JetBrains) — per-user state, regenerated from Gradle on import ---
+.idea/
+*.iml
+
+# --- Android / Gradle (SensorLogger) ---
+SensorLogger/build/
+SensorLogger/app/build/
+SensorLogger/.gradle/
+SensorLogger/.cxx/
+SensorLogger/captures/
+SensorLogger/local.properties
+
+# --- Julia viewer (SensorLoggerViewer) ---
+# Generated protobuf bindings — regenerate with gen_proto.jl
+SensorLoggerViewer/proto_gen/
+# PackageCompiler sysimage for fast GLMakie startup — build with scripts/build-sysimage.sh
+SensorLoggerViewer/viewer.so
+
+# --- CMake orchestrator ---
+build/
+
+# --- Nix ---
+result
+result-*
+.direnv/

@@ -1,0 +1,7 @@
+[deps]
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+ProtoBuf = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
+Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
+
+[compat]
+julia = "1.11"

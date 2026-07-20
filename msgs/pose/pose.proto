@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package vslam.msgs;
+
+import "linalg/linalg.proto";   // Mat4f
+
+// Codegen options match the SensorLogger app namespace (see imu/imu.proto).
+option java_package = "com.rastar.vslam.msgs";
+option java_multiple_files = true;
+
+// One pose sample: a rigid transform stamped on the same clocks as ImuSample,
+// so pose and IMU streams align. The transform is a 4×4 homogeneous matrix
+// (row-major Mat4f), e.g. the integrated ΔT = [ R  t ; 0 1 ].
+message PoseSample {
+  int64 t_mono_ns = 1;   // hardware monotonic clock, ns (integration clock)
+  int64 t_utc_ns  = 2;   // optional wall-clock (UTC) ns; 0 = unset
+  Mat4f pose      = 3;   // 4×4 homogeneous transform, row-major
+}
+
+// Batched pose stream — mirrors ImuBatch so a producer can carry many samples
+// per datagram.
+message PoseBatch {
+  repeated PoseSample samples = 1;
+  string device_id = 2;   // producer identity, e.g. phone model / serial
+
+  // Per-session batch counter, reset to 0 each time streaming (re)starts.
+  // seq == 0 marks the first datagram of a new session (ΔT back at identity);
+  // world.jl resets its trail/breadcrumbs on it (or on a seq that goes
+  // backwards, in case the seq-0 datagram was dropped).
+  int64 seq = 3;
+}

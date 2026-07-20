@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package vslam.msgs;
+
+import "linalg/linalg.proto";   // Vec3f / Vec3d
+
+// Android (producer) codegen options — matches the SensorLogger app namespace.
+option java_package = "com.rastar.vslam.msgs";
+option java_outer_classname = "ImuProto";
+option java_multiple_files = true;
+
+// One IMU sample: gyro + accelerometer at a common timestamp.
+message ImuSample {
+  // Sensor-hardware monotonic clock, nanoseconds. This is the integration
+  // clock — strictly increasing, immune to wall-clock steps.
+  // (Android: SensorEvent.timestamp, elapsedRealtimeNanos base.)
+  int64 t_mono_ns = 1;
+
+  // Optional wall-clock (UTC) nanoseconds for cross-device alignment; 0 = unset.
+  int64 t_utc_ns = 2;
+
+  Vec3f gyro  = 3;   // angular velocity ω, rad/s   (body frame)
+  Vec3f accel = 4;   // specific force  a, m/s²      (body frame, INCLUDES gravity)
+
+  // Optional extras — populated only if the device exposes them.
+  Vec3f mag         = 5;   // magnetic field, microtesla
+  float temperature = 6;   // IMU die temperature, °C
+}
+
+// Batched stream: one ZMQ message carries many samples to amortize the
+// per-message framing/syscall cost of a high-rate (100–1000 Hz) IMU.
+message ImuBatch {
+  repeated ImuSample samples = 1;
+  string device_id = 2;   // producer identity, e.g. phone model / serial
+
+  // Monotonic batch counter for the raw IMU stream. Unlike PoseBatch.seq this
+  // does NOT reset on stream stop/start — the sensor feed is continuous, so seq
+  // increases for the whole producer process lifetime. (Purely informational:
+  // ordering / loss detection; the IMU has no "session" to restart.)
+  int64 seq = 3;
+}

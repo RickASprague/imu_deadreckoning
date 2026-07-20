@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package vslam.msgs;
+
+option java_package = "com.rastar.vslam.msgs";
+option java_multiple_files = true;
+
+// 32-bit 3-vector — source/sensor fidelity (e.g. Android SensorEvent is
+// float[], IMUs are ~16-bit; double would be wasted wire bytes).
+message Vec3f {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+// 64-bit 3-vector — estimation/back-end precision (poses, velocities,
+// integrated quantities where rounding accumulates).
+message Vec3d {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+// 4×4 single-precision matrix, ROW-MAJOR: element (r,c) = m[4*r + c].
+// Exactly 16 entries. A homogeneous transform T = [ R  t ; 0 1 ] lives here
+// directly (repeated scalar floats are packed on the wire in proto3).
+message Mat4f {
+  repeated float m = 1;
+}
