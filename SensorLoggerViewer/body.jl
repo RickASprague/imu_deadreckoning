@@ -34,8 +34,6 @@ include(joinpath(@__DIR__, "proto_gen", "vslam", "vslam.jl"))
 using .vslam.msgs: ImuBatch
 import ProtoBuf as PB
 
-const PORT = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 5555
-
 decode_batch(bytes) = PB.decode(PB.ProtoDecoder(IOBuffer(bytes)), ImuBatch)
 
 # Accelerometer specific force is ~g when still, so drawn at true length its
@@ -128,7 +126,9 @@ function look_at_face!(ls)
     update_cam!(ls.scene, Vec3f(0, 0, 4), Vec3f(0, 0, 0), Vec3f(0, 1, 0))
 end
 
-function main()
+# Entry point when run as a script; not called when the file is `include`d for testing.
+function (@main)(args)
+    port = length(args) >= 1 ? parse(Int, args[1]) : 5555
     GLMakie.activate!(title = "Phone Body Frame")
     fig, ls, hud = build_scene()
     screen = display(fig)          # GLMakie Screen — its isopen() is the reliable
@@ -141,7 +141,7 @@ function main()
         sleep(0.02)
     end
 
-    @async udp_loop(PORT)
+    @async udp_loop(port)
 
     # Render/HUD loop: measure display FPS, prune the 1 s Hz window, update HUD.
     tprev = time(); frames = 0; fps = 0.0
@@ -160,9 +160,5 @@ function main()
                          fps, npackets[], nsamples[], rate)
         sleep(1 / 60)                          # display refresh cap (≠ data rate)
     end
-end
-
-# Only launch when run as a script (lets the file be `include`d for testing).
-if abspath(PROGRAM_FILE) == @__FILE__
-    main()
+    return nothing            # main's return value is the exit code; nothing → 0
 end

@@ -32,7 +32,6 @@ include(joinpath(@__DIR__, "proto_gen", "vslam", "vslam.jl"))
 using .vslam.msgs: PoseBatch
 import ProtoBuf as PB
 
-const PORT         = length(ARGS) >= 1 ? parse(Int, ARGS[1]) : 5556
 const CRUMB_PERIOD = 1.0            # seconds between breadcrumb triads
 const AXIS_LEN     = 0.30f0         # body/world triad arrow length (m-ish units)
 const CRUMB_LEN    = 0.15f0         # breadcrumb triad arrow length
@@ -237,7 +236,8 @@ function look_iso!(ls)
     update_cam!(ls.scene, Vec3f(2.4, -2.4, 1.7), Vec3f(0, 0, 0.15), Vec3f(0, 0, 1))
 end
 
-function main()
+function (@main)(args)
+    port = length(args) >= 1 ? parse(Int, args[1]) : 5556
     GLMakie.activate!(title = "Phone World Frame")
     fig, ls, hud = build_scene()
     screen = display(fig)
@@ -257,7 +257,7 @@ function main()
     if Threads.nthreads() < 2
         @warn "started with 1 thread — receive can starve under GLMakie. Launch: julia -t 3 --project=. world.jl"
     end
-    Threads.@spawn udp_loop(PORT)
+    Threads.@spawn udp_loop(port)
 
     # Frame-time instrumentation: dt of each loop iteration, and the worst seen.
     # If the loop is real-time these stay ~16 ms; a stall shows up as a Δt spike
@@ -286,8 +286,5 @@ function main()
                          frame_dt * 1e3, frame_max * 1e3)
         sleep(1 / 60)
     end
-end
-
-if abspath(PROGRAM_FILE) == @__FILE__
-    main()
+    return nothing            # main's return value is the exit code; nothing → 0
 end
